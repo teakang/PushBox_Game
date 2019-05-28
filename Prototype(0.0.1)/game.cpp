@@ -13,6 +13,8 @@ void startScreen(int stage);
 void baseUI();
 void helpScreen();
 void clearScreen();
+void drawGraphic(int row, int col, int color);
+void refreshScore();
 
 int input;
 
@@ -34,43 +36,46 @@ void helpScreen() {
     attroff(COLOR_PAIR(1));
 }
 
+void drawGraphic(int row, int col, int color) {
+    attron(COLOR_PAIR(color));
+    mvprintw(3 + row, 5 + col * 2, "  ");
+    attroff(COLOR_PAIR(color));
+}
+
 void refreshMap(int stage) {
     for(int i = 0; i < stages.at(stage - 1).getRow(); i++) {
         for(int j = 0; j < stages.at(stage - 1).getCol(); j++) {
             switch (stages.at(stage - 1).getMapData()[i][j]) {
                 case 0:
-                    attron(COLOR_PAIR(5));
-                    mvprintw(3 + i, 5 + j * 2, "  ");
-                    attroff(COLOR_PAIR(5));
+                case 4:
+                    drawGraphic(i, j, 5);
                     break;
                 case 1:
-                    attron(COLOR_PAIR(4));
-                    mvprintw(3 + i, 5 + j * 2, "  ");
-                    attroff(COLOR_PAIR(4));
+                    drawGraphic(i, j, 4);
                     break;
                 case 2:
-                    attron(COLOR_PAIR(6));
-                    mvprintw(3 + i, 5 + j * 2, "  ");
-                    attroff(COLOR_PAIR(6));
+                    drawGraphic(i, j, 6);
                     break;
                 case 3:
-                    attron(COLOR_PAIR(8));
-                    mvprintw(3 + i, 5 + j * 2, "  ");
-                    attroff(COLOR_PAIR(8));
-                    break;
-                case 4:
-                    attron(COLOR_PAIR(5));
-                    mvprintw(3 + i, 5 + j * 2, "  ");
-                    attroff(COLOR_PAIR(5));
+                    drawGraphic(i, j, 8);
                     break;
                 case 5:
-                    attron(COLOR_PAIR(7));
-                    mvprintw(3 + i, 5 + j * 2, "  ");
-                    attroff(COLOR_PAIR(7));
+                    drawGraphic(i, j, 7);
                     break;
             }
         }
     }
+}
+
+void refreshScore() {
+    attron(COLOR_PAIR(1));
+    string b = to_string(stepCnt);
+    const char *a = b.c_str();
+    mvprintw(5, 33, a);
+    string d = to_string(pushCnt);
+    const char *c = d.c_str();
+    mvprintw(9, 33, c);
+    attroff(COLOR_PAIR(1));
 }
 
 void playGame(int stage) {
@@ -106,81 +111,41 @@ void playGame(int stage) {
             case 119:
                 stages.at(stage - 49).upside();
                 refreshMap(stage - 48);
-                attron(COLOR_PAIR(1));
-                b = to_string(stepCnt);
-                a = b.c_str();
-                mvprintw(5, 33, a);
-                d = to_string(pushCnt);
-                c = d.c_str();
-                mvprintw(9, 33, c);
-                attroff(COLOR_PAIR(1));
+                refreshScore();
                 break;
             case 83:
             case 115:
                 stages.at(stage - 49).downside();
                 refreshMap(stage - 48);
-                attron(COLOR_PAIR(1));
-                b = to_string(stepCnt);
-                a = b.c_str();
-                mvprintw(5, 33, a);
-                d = to_string(pushCnt);
-                c = d.c_str();
-                mvprintw(9, 33, c);
-                attroff(COLOR_PAIR(1));
+                refreshScore();
                 break;
             case 68:
             case 100:
                 stages.at(stage - 49).rightside();
                 refreshMap(stage - 48);
-                attron(COLOR_PAIR(1));
-                b = to_string(stepCnt);
-                a = b.c_str();
-                mvprintw(5, 33, a);
-                d = to_string(pushCnt);
-                c = d.c_str();
-                mvprintw(9, 33, c);
-                attroff(COLOR_PAIR(1));
+                refreshScore();
                 break;
             case 65:
             case 97:
                 stages.at(stage - 49).leftside();
                 refreshMap(stage - 48);
-                attron(COLOR_PAIR(1));
-                b = to_string(stepCnt);
-                a = b.c_str();
-                mvprintw(5, 33, a);
-                d = to_string(pushCnt);
-                c = d.c_str();
-                mvprintw(9, 33, c);
-                attroff(COLOR_PAIR(1));
+                refreshScore();
                 break;
             case 85:
             case 117:
                 stages.at(stage - 49).undo();
                 refreshMap(stage - 48);
-                attron(COLOR_PAIR(1));
-                b = to_string(stepCnt);
-                a = b.c_str();
-                mvprintw(5, 33, a);
-                d = to_string(pushCnt);
-                c = d.c_str();
-                mvprintw(9, 33, c);
-                attroff(COLOR_PAIR(1));
+                refreshScore();
                 break;
             case 82:
             case 114:
                 stages.at(stage - 49).restartMap();
                 refreshMap(stage - 48);
                 attron(COLOR_PAIR(1));
-                b = to_string(stepCnt);
-                a = b.c_str();
                 mvprintw(5, 33, "   ");
-                mvprintw(5, 33, a);
-                d = to_string(pushCnt);
-                c = d.c_str();
                 mvprintw(9, 33, "   ");
-                mvprintw(9, 33, c);
                 attroff(COLOR_PAIR(1));
+                refreshScore();
                 break;
             case 81:
             case 113:
@@ -262,7 +227,7 @@ int main() {
     ifstream inStream;
     // 0: 벽 내부의 빈공간, 1: 벽, 2: 박스, 3: 타겟, 4: 빈공간, 5: 캐릭터초기위치
     // 여유공간을 계산, 맵 데이터의 최대 크기는 가로 10 세로 9으로 제한
-    inStream.open("/home/khw56184/work-space/CLionProjects/CPP/push_box/input.txt");
+    inStream.open("/Users/simonkim/Desktop/PushBox_Game-master/Prototype(0.0.1)/input.txt");
     inStream >> numStage;
     for(int i = 0; i < numStage; i++) {
         int r, c;
@@ -284,7 +249,9 @@ int main() {
     curs_set(0);
     noecho();
     start_color();
-    init_pair(1, COLOR_BLUE, COLOR_BLACK); init_pair(2, COLOR_RED, COLOR_BLACK); init_pair(3, COLOR_BLACK, COLOR_WHITE);
+    init_pair(1, COLOR_BLUE, COLOR_BLACK);
+    init_pair(2, COLOR_RED, COLOR_BLACK);
+    init_pair(3, COLOR_BLACK, COLOR_WHITE);
     init_pair(4, COLOR_WHITE, COLOR_WHITE); //벽
     init_pair(5, COLOR_BLACK, COLOR_BLACK); //빈공간
     init_pair(6, COLOR_RED, COLOR_RED); //박스
