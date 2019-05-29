@@ -2,7 +2,6 @@
 #include <ncurses.h>
 #include <vector>
 #include <iostream>
-#include <limits>
 #include "map.h"
 
 using namespace std;
