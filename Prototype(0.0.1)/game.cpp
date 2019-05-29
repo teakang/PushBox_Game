@@ -1,6 +1,8 @@
 #include <fstream>
 #include <ncurses.h>
 #include <vector>
+#include <iostream>
+#include <limits>
 #include "map.h"
 
 using namespace std;
@@ -15,6 +17,7 @@ void helpScreen();
 void clearScreen();
 void drawGraphic(int row, int col, int color);
 void refreshScore();
+void saveScore(int stage, int step, int push);  // Save user score
 
 int input;
 
@@ -93,6 +96,36 @@ void refreshScore() {
     attroff(COLOR_PAIR(1));
 }
 
+void saveScore(int stage, int step, int push) {
+    string file = "/home/khw56184/work-space/CLionProjects/CPP/push_box/scores/stage" + to_string(stage) + ".txt";
+    ifstream fin(file);
+    string name; // name of user, need graphical implement
+    cout << "name: ";
+    cin >> name;
+    if(name.empty()) name = "unknown";
+    if(fin.fail() || fin.peek() == ifstream::traits_type::eof()) {
+        ofstream fout(file);
+        fout << name << " " << step << " " << push << " \n";
+        fout.close();
+    } else {
+        vector<string> v;
+        vector<string>::iterator it;
+        string str;
+        for(int i = 0; fin >> str && i < 15; i++)
+            v.emplace_back(str);
+        for(it = v.end(); it != v.begin() && step + push < stoi(*(it - 2)) + stoi(*(it - 1)); it -= 3) {}
+        v.insert(it, {name, to_string(step), to_string(push)});
+        ofstream fout(file);
+        int c = 5, i = 0;
+        while(c-- && i < v.size()) {
+            fout << v[i] << " " << v[i + 1] << " " << v[i + 2] << " \n";
+            i += 3;
+        }
+        fout.close();
+    }
+    fin.close();
+}
+
 void playGame(int stage) {
     int control;
     attron(COLOR_PAIR(3));
@@ -168,7 +201,10 @@ void playGame(int stage) {
                 break;
         }
     }
-    if(chkquit == 0) clearScreen();
+    if(chkquit == 0) {
+        clearScreen();
+        saveScore(stage - 48, stepCnt, pushCnt);
+    }
     stages.at(stage - 49).restartMap();
     clear();
     startScreen(numStage);
@@ -242,7 +278,7 @@ int main() {
     ifstream inStream;
     // 0: 벽 내부의 빈공간, 1: 벽, 2: 박스, 3: 타겟, 4: 빈공간, 5: 캐릭터초기위치
     // 여유공간을 계산, 맵 데이터의 최대 크기는 가로 10 세로 9으로 제한
-    inStream.open("/Users/simonkim/PushBox_Game/Prototype(0.0.1)/input.txt");
+    inStream.open("/home/khw56184/work-space/CLionProjects/CPP/push_box/input.txt");
     inStream >> numStage;
     for(int i = 0; i < numStage; i++) {
         int r, c;
