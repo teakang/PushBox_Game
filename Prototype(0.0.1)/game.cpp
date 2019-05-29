@@ -30,8 +30,23 @@ void baseUI() {
 
 void helpScreen() {
     attron(COLOR_PAIR(1));
-    mvprintw(4, 7, "Move Character");
-    mvprintw(5, 20, "- W, A, S, D");
+    mvprintw(4, 10, "Move Character ");
+    attron(COLOR_PAIR(7));
+    mvprintw(4, 25, "  ");
+    attroff(COLOR_PAIR(7));
+    mvprintw(5, 18, "- W, A, S, D");
+    mvprintw(7, 10, "Move the ");
+    attron(COLOR_PAIR(6));
+    mvprintw(7, 19, "  ");
+    attroff(COLOR_PAIR(6));
+    mvprintw(8, 21, "to the ");
+    attron(COLOR_PAIR(8));
+    mvprintw(8, 28, "  ");
+    attroff(COLOR_PAIR(8));
+    attron(COLOR_PAIR(4));
+    mvprintw(10, 10, "  ");
+    attroff(COLOR_PAIR(4));
+    mvprintw(10, 12, " cant pass through");
     mvprintw(13, 15, "Press any key to return");
     attroff(COLOR_PAIR(1));
 }
@@ -227,7 +242,7 @@ int main() {
     ifstream inStream;
     // 0: 벽 내부의 빈공간, 1: 벽, 2: 박스, 3: 타겟, 4: 빈공간, 5: 캐릭터초기위치
     // 여유공간을 계산, 맵 데이터의 최대 크기는 가로 10 세로 9으로 제한
-    inStream.open("/Users/simonkim/Desktop/PushBox_Game-master/Prototype(0.0.1)/input.txt");
+    inStream.open("/Users/simonkim/PushBox_Game/Prototype(0.0.1)/input.txt");
     inStream >> numStage;
     for(int i = 0; i < numStage; i++) {
         int r, c;

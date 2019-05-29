@@ -85,119 +85,19 @@ bool map::clearChk() {
 }
 
 void map::upside() {
-    if(mapData[currCharRow - 1][currCharCol] == 0) {
-        mapData[currCharRow - 1][currCharCol] = 5;
-        mapData[currCharRow][currCharCol] = 0;
-        currCharRow--;
-        stepCnt++;
-        saveUndoData();
-    } else if(mapData[currCharRow - 1][currCharCol] == 3) {
-        mapData[currCharRow - 1][currCharCol] = 5;
-        mapData[currCharRow][currCharCol] = 0;
-        currCharRow--;
-        stepCnt++;
-        saveUndoData();
-    } else if(mapData[currCharRow - 1][currCharCol] == 1) {
-        return;
-    } else if(mapData[currCharRow - 1][currCharCol] == 2) {
-        if(mapData[currCharRow - 2][currCharCol] == 0 || mapData[currCharRow - 2][currCharCol] == 3) {
-            mapData[currCharRow - 2][currCharCol] = 2;
-            mapData[currCharRow - 1][currCharCol] = 5;
-            mapData[currCharRow][currCharCol] = 0;
-            currCharRow--;
-            stepCnt++;
-            pushCnt++;
-            saveUndoData();
-        } else return;
-    }
-    targetOverwrite();
+    moveAction(-1, 0);
 }
 
 void map::downside() {
-    if(mapData[currCharRow + 1][currCharCol] == 0) {
-        mapData[currCharRow + 1][currCharCol] = 5;
-        mapData[currCharRow][currCharCol] = 0;
-        currCharRow++;
-        stepCnt++;
-        saveUndoData();
-    } else if(mapData[currCharRow + 1][currCharCol] == 3) {
-        mapData[currCharRow + 1][currCharCol] = 5;
-        mapData[currCharRow][currCharCol] = 0;
-        currCharRow++;
-        stepCnt++;
-        saveUndoData();
-    } else if(mapData[currCharRow + 1][currCharCol] == 1) {
-        return;
-    } else if(mapData[currCharRow + 1][currCharCol] == 2) {
-        if(mapData[currCharRow + 2][currCharCol] == 0 || mapData[currCharRow + 2][currCharCol] == 3) {
-            mapData[currCharRow + 2][currCharCol] = 2;
-            mapData[currCharRow + 1][currCharCol] = 5;
-            mapData[currCharRow][currCharCol] = 0;
-            currCharRow++;
-            stepCnt++;
-            pushCnt++;
-            saveUndoData();
-        } else return;
-    }
-    targetOverwrite();
+    moveAction(1, 0);
 }
 
 void map::rightside() {
-    if(mapData[currCharRow][currCharCol + 1] == 0) {
-        mapData[currCharRow][currCharCol + 1] = 5;
-        mapData[currCharRow][currCharCol] = 0;
-        currCharCol++;
-        stepCnt++;
-        saveUndoData();
-    } else if(mapData[currCharRow][currCharCol + 1] == 3) {
-        mapData[currCharRow][currCharCol + 1] = 5;
-        mapData[currCharRow][currCharCol] = 0;
-        currCharCol++;
-        stepCnt++;
-        saveUndoData();
-    } else if(mapData[currCharRow][currCharCol + 1] == 1) {
-        return;
-    } else if(mapData[currCharRow][currCharCol + 1] == 2) {
-        if(mapData[currCharRow][currCharCol + 2] == 0 || mapData[currCharRow][currCharCol + 2] == 3) {
-            mapData[currCharRow][currCharCol + 2] = 2;
-            mapData[currCharRow][currCharCol + 1] = 5;
-            mapData[currCharRow][currCharCol] = 0;
-            currCharCol++;
-            stepCnt++;
-            pushCnt++;
-            saveUndoData();
-        } else return;
-    }
-    targetOverwrite();
+    moveAction(0, 1);
 }
 
 void map::leftside() {
-    if(mapData[currCharRow][currCharCol - 1] == 0) {
-        mapData[currCharRow][currCharCol - 1] = 5;
-        mapData[currCharRow][currCharCol] = 0;
-        currCharCol--;
-        stepCnt++;
-        saveUndoData();
-    } else if(mapData[currCharRow][currCharCol - 1] == 3) {
-        mapData[currCharRow][currCharCol - 1] = 5;
-        mapData[currCharRow][currCharCol] = 0;
-        currCharCol--;
-        stepCnt++;
-        saveUndoData();
-    } else if(mapData[currCharRow][currCharCol - 1] == 1) {
-        return;
-    } else if(mapData[currCharRow][currCharCol - 1] == 2) {
-        if(mapData[currCharRow][currCharCol - 2] == 0 || mapData[currCharRow][currCharCol - 2] == 3) {
-            mapData[currCharRow][currCharCol - 2] = 2;
-            mapData[currCharRow][currCharCol - 1] = 5;
-            mapData[currCharRow][currCharCol] = 0;
-            currCharCol--;
-            stepCnt++;
-            pushCnt++;
-            saveUndoData();
-        } else return;
-    }
-    targetOverwrite();
+    moveAction(0, -1);
 }
 
 void map::undo() {
@@ -246,6 +146,40 @@ int** map::getMapData() {
     return mapData;
 }
 
-void map::moveAction(int row, int col) {
+void map::moveAction(int rowChange, int colChange) {
+    int row = currCharRow + rowChange;
+    int col = currCharCol + colChange;
+    if(mapData[row][col] == 0) {
+        saveUndoData();
+        mapData[row][col] = 5;
+        mapData[currCharRow][currCharCol] = 0;
+        moveCharacter(rowChange, colChange);
+        stepCnt++;
+    } else if(mapData[row][col] == 3) {
+        saveUndoData();
+        mapData[row][col] = 5;
+        mapData[currCharRow][currCharCol] = 0;
+        moveCharacter(rowChange, colChange);
+        stepCnt++;
+    } else if(mapData[row][col] == 1) {
+        return;
+    } else if(mapData[row][col] == 2) {
+        if(mapData[row + rowChange][col + colChange] == 0 || mapData[row + rowChange][col + colChange] == 3) {
+            saveUndoData();
+            mapData[row + rowChange][col + colChange] = 2;
+            mapData[row][col] = 5;
+            mapData[currCharRow][currCharCol] = 0;
+            moveCharacter(rowChange, colChange);
+            stepCnt++;
+            pushCnt++;
+        } else return;
+    }
+    targetOverwrite();
+}
 
+void map::moveCharacter(int rowChange, int colChange) {
+    if(rowChange == 1) currCharRow++;
+    else if(rowChange == -1) currCharRow--;
+    else if(colChange == 1) currCharCol++;
+    else if(colChange == -1) currCharCol--;
 }

@@ -26,8 +26,9 @@ public:
 
     void leftside();
 
-    void moveAction(int row, int col);
-    //이동 코드 재사용성 향상을 위한 부분
+    void moveAction(int rowChange, int colChange);
+
+    void moveCharacter(int rowChange, int colChange);
 
     void undo();
 
