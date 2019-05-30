@@ -13,10 +13,11 @@ void playGame(int stage);
 void startScreen(int stage);
 void baseUI();
 void helpScreen();
-void clearScreen();
+void clearScreen(int stage);
 void drawGraphic(int row, int col, int color);
 void refreshScore();
 void saveScore(int stage, int step, int push);  // Save user score
+void saveSortedScore(int stage);  // 스테이지의 1~3위까지를 순서대로 정렬하여 저장함(산출기준은 두 점수의 합)
 
 int input;
 
@@ -96,33 +97,39 @@ void refreshScore() {
 }
 
 void saveScore(int stage, int step, int push) {
-    string file = "/home/khw56184/work-space/CLionProjects/CPP/push_box/scores/stage" + to_string(stage) + ".txt";
+    string file = "/Users/simonkim/PushBox_Game/Prototype(0.0.1)/scores/stage" + to_string(stage) + ".txt";
     ifstream fin(file);
-    string name; // name of user, need graphical implement
-    cout << "name: ";
-    cin >> name;
-    if(name.empty()) name = "unknown";
     if(fin.fail() || fin.peek() == ifstream::traits_type::eof()) {
         ofstream fout(file);
-        fout << name << " " << step << " " << push << " \n";
+        fout << step + push << "\n";
         fout.close();
     } else {
-        vector<string> v;
-        vector<string>::iterator it;
-        string str;
-        for(int i = 0; fin >> str && i < 15; i++)
-            v.emplace_back(str);
-        for(it = v.end(); it != v.begin() && step + push < stoi(*(it - 2)) + stoi(*(it - 1)); it -= 3) {}
-        v.insert(it, {name, to_string(step), to_string(push)});
-        ofstream fout(file);
-        int c = 5, i = 0;
-        while(c-- && i < v.size()) {
-            fout << v[i] << " " << v[i + 1] << " " << v[i + 2] << " \n";
-            i += 3;
-        }
+        ofstream fout(file, ios::app);
+        fout << step + push << "\n";
         fout.close();
     }
     fin.close();
+}
+
+void saveSortedScore(int stage) {
+    string file = "/Users/simonkim/PushBox_Game/Prototype(0.0.1)/scores/stage" + to_string(stage) + ".txt";
+    string targetfile = "/Users/simonkim/PushBox_Game/Prototype(0.0.1)/scores/sortedstage" + to_string(stage) + ".txt";
+    vector<int> v;
+    v.assign(3, 0);
+    int total;
+    ifstream fin(file);
+    ofstream fout(targetfile);
+    while (fin >> total) {
+        for(int i = 0; i < v.size(); i++) {
+            if(v[i] > total || v[i] == 0) {
+                v.insert(v.begin() + i, total);
+                v.pop_back();
+                break;
+            }
+        }
+    }
+    fout << v[0] << "\n" << v[1] << "\n"<< v[2] << "\n";
+    fout.close();
 }
 
 void playGame(int stage) {
@@ -201,37 +208,55 @@ void playGame(int stage) {
         }
     }
     if(chkquit == 0) {
-        clearScreen();
-        saveScore(stage - 48, stepCnt, pushCnt);
+        clearScreen(stage);
     }
     stages.at(stage - 49).restartMap();
     clear();
     startScreen(numStage);
 }
 
-void clearScreen() {
+void clearScreen(int stage) {
+    saveScore(stage - 48, stepCnt, pushCnt);
+    saveSortedScore(stage - 48);
     clear();
     baseUI();
     attron(COLOR_PAIR(2));
-    mvprintw(4, 12, "Congraturation!!");
-    mvprintw(5, 14, "Stage Clear!");
-    mvprintw(7, 15, "Your Score");
+    mvprintw(3, 6, "Congraturation! ");
+    mvprintw(3, 22, "Stage Clear!");
+    mvprintw(5, 15, "Your Score");
     attroff(COLOR_PAIR(2));
     attron(COLOR_PAIR(1));
     mvprintw(13, 15, "Press any key to return");
     attroff(COLOR_PAIR(1));
-    attron(COLOR_PAIR(3));
-    mvprintw(8, 14, " Step : ");
+    attron(COLOR_PAIR(9));
+    mvprintw(6, 8, " Step :     ");
     string b = to_string(stepCnt);
     const char *a = b.c_str();
-    mvprintw(8, 23, "   ");
-    mvprintw(8, 22, a);
-    mvprintw(9, 14, " Push : ");
+    mvprintw(6, 16, a);
+    mvprintw(6, 20, " Push :     ");
     string d = to_string(pushCnt);
     const char *c = d.c_str();
-    mvprintw(9, 23, "   ");
-    mvprintw(9, 22, c);
-    attroff(COLOR_PAIR(3));
+    mvprintw(6, 28, c);
+    mvprintw(7, 8, "       Total:           ");
+    string f = to_string(pushCnt + stepCnt);
+    const char *e = f.c_str();
+    mvprintw(7, 22, e);
+    attroff(COLOR_PAIR(9));
+    attron(COLOR_PAIR(10));
+    mvprintw(9, 13, " Rank  1:     ");
+    mvprintw(10, 13, "       2:     ");
+    mvprintw(11, 13, "       3:     ");
+    string targetfile = "/Users/simonkim/PushBox_Game/Prototype(0.0.1)/scores/sortedstage" + to_string(stage - 48) + ".txt";
+    int total;
+    ifstream fin(targetfile);
+    for(int i = 0; i < 3; i++) {
+        fin >> total;
+        string rank = to_string(total);
+        const char *strrank = rank.c_str();
+        mvprintw(9 + i, 23, strrank);
+    }
+    fin.close();
+    attroff(COLOR_PAIR(10));
     refresh();
     getch();
 }
@@ -277,7 +302,7 @@ int main() {
     ifstream inStream;
     // 0: 벽 내부의 빈공간, 1: 벽, 2: 박스, 3: 타겟, 4: 빈공간, 5: 캐릭터초기위치
     // 여유공간을 계산, 맵 데이터의 최대 크기는 가로 10 세로 9으로 제한
-    inStream.open("/home/khw56184/work-space/CLionProjects/CPP/push_box/input.txt");
+    inStream.open("/Users/simonkim/PushBox_Game/Prototype(0.0.1)/input.txt");
     inStream >> numStage;
     for(int i = 0; i < numStage; i++) {
         int r, c;
@@ -307,6 +332,8 @@ int main() {
     init_pair(6, COLOR_RED, COLOR_RED); //박스
     init_pair(7, COLOR_BLUE, COLOR_BLUE); //캐릭터
     init_pair(8, COLOR_GREEN, COLOR_GREEN); //타겟
+    init_pair(9, COLOR_GREEN, COLOR_BLACK);
+    init_pair(10, COLOR_BLACK, COLOR_GREEN);
     startScreen(numStage);
     endwin();
     return 0;
