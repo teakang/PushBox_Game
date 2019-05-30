@@ -2,6 +2,7 @@
 #include <ncurses.h>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 #include "map.h"
 
 using namespace std;
@@ -17,7 +18,6 @@ void clearScreen(int stage);
 void drawGraphic(int row, int col, int color);
 void refreshScore();
 void saveScore(int stage, int step, int push);  // Save user score
-void saveSortedScore(int stage);  // 스테이지의 1~3위까지를 순서대로 정렬하여 저장함(산출기준은 두 점수의 합)
 
 int input;
 
@@ -99,37 +99,23 @@ void refreshScore() {
 void saveScore(int stage, int step, int push) {
     string file = "/Users/simonkim/PushBox_Game/Prototype(0.0.1)/scores/stage" + to_string(stage) + ".txt";
     ifstream fin(file);
-    if(fin.fail() || fin.peek() == ifstream::traits_type::eof()) {
-        ofstream fout(file);
-        fout << step + push << "\n";
-        fout.close();
-    } else {
-        ofstream fout(file, ios::app);
-        fout << step + push << "\n";
-        fout.close();
-    }
-    fin.close();
-}
-
-void saveSortedScore(int stage) {
-    string file = "/Users/simonkim/PushBox_Game/Prototype(0.0.1)/scores/stage" + to_string(stage) + ".txt";
-    string targetfile = "/Users/simonkim/PushBox_Game/Prototype(0.0.1)/scores/sortedstage" + to_string(stage) + ".txt";
     vector<int> v;
-    v.assign(3, 0);
+    v.clear();
+    v.push_back(step + push);
     int total;
-    ifstream fin(file);
-    ofstream fout(targetfile);
-    while (fin >> total) {
-        for(int i = 0; i < v.size(); i++) {
-            if(v[i] > total || v[i] == 0) {
-                v.insert(v.begin() + i, total);
-                v.pop_back();
-                break;
-            }
+    while(fin >> total) {
+        if (total != 0) {
+            v.push_back(total);
         }
     }
+    sort(v.begin(), v.end());
+    while(v.size() < 3) {
+        v.push_back(0);
+    }
+    ofstream fout(file);
     fout << v[0] << "\n" << v[1] << "\n"<< v[2] << "\n";
     fout.close();
+    fin.close();
 }
 
 void playGame(int stage) {
@@ -217,7 +203,6 @@ void playGame(int stage) {
 
 void clearScreen(int stage) {
     saveScore(stage - 48, stepCnt, pushCnt);
-    saveSortedScore(stage - 48);
     clear();
     baseUI();
     attron(COLOR_PAIR(2));
@@ -246,9 +231,9 @@ void clearScreen(int stage) {
     mvprintw(9, 13, " Rank  1:     ");
     mvprintw(10, 13, "       2:     ");
     mvprintw(11, 13, "       3:     ");
-    string targetfile = "/Users/simonkim/PushBox_Game/Prototype(0.0.1)/scores/sortedstage" + to_string(stage - 48) + ".txt";
+    string file = "/Users/simonkim/PushBox_Game/Prototype(0.0.1)/scores/stage" + to_string(stage - 48) + ".txt";
     int total;
-    ifstream fin(targetfile);
+    ifstream fin(file);
     for(int i = 0; i < 3; i++) {
         fin >> total;
         string rank = to_string(total);
