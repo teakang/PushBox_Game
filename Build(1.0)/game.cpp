@@ -97,7 +97,7 @@ void refreshScore() {
 }
 
 void saveScore(int stage, int step, int push) {
-    string file = "/Users/simonkim/PushBox_Game/Prototype(0.0.1)/scores/stage" + to_string(stage) + ".txt";
+    string file = "/your_root/Build(1.0)/scores/stage" + to_string(stage) + ".txt";
     ifstream fin(file);
     vector<int> v;
     v.clear();
@@ -231,7 +231,7 @@ void clearScreen(int stage) {
     mvprintw(9, 13, " Rank  1:     ");
     mvprintw(10, 13, "       2:     ");
     mvprintw(11, 13, "       3:     ");
-    string file = "/Users/simonkim/PushBox_Game/Prototype(0.0.1)/scores/stage" + to_string(stage - 48) + ".txt";
+    string file = "/your_root/Build(1.0)/scores/stage" + to_string(stage - 48) + ".txt";
     int total;
     ifstream fin(file);
     for(int i = 0; i < 3; i++) {
@@ -287,7 +287,7 @@ int main() {
     ifstream inStream;
     // 0: 벽 내부의 빈공간, 1: 벽, 2: 박스, 3: 타겟, 4: 빈공간, 5: 캐릭터초기위치
     // 여유공간을 계산, 맵 데이터의 최대 크기는 가로 10 세로 9으로 제한
-    inStream.open("/Users/simonkim/PushBox_Game/Prototype(0.0.1)/input.txt");
+    inStream.open("/your_root/Build(1.0)/input.txt");
     inStream >> numStage;
     for(int i = 0; i < numStage; i++) {
         int r, c;
